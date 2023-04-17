@@ -1,27 +1,26 @@
-// get form from element html for reference and preform manipulation
-const form : HTMLFormElement = document.querySelector('#defineform')!;
+const form = document.querySelector<HTMLFormElement>('#defineform')!;
+const list = document.querySelector<HTMLUListElement>('.list-unstyled')!;
+const header = document.querySelector<HTMLHeadingElement>('h1')!;
 
-form.onsubmit = () => {
-  const formData = new FormData(form); // forma data from form
-  const text = formData.get('defineword') as string; // get the word user input
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
 
-  //for debugging
-  //console.log(formData);
-  //console.log(text);
+  const formData = new FormData(event.target as HTMLFormElement);
+  const text = formData.get('defineword') as string;
 
-  const defLists : HTMLUListElement = document.querySelector(".list-unstyled")!;
-  const p = document.createElement("li");
-  p.textContent = "Hello, World!";
-  defLists?.appendChild(p);
+  try {
+    const response = await fetch(https://api.dictionaryapi.dev/api/v2/entries/en/${text});
+    const data = await response.json();
 
-  // API call 
-  fetch("https://api.dictionaryapi.dev/api/v2/entries/en/"+text)
-  // cast response to be in json format???
-  .then((Response) => Response.json())
-  // get the data from API call and adding definitions to the web page
-  .then((DataTransfer) => {
-    console.log(DataTransfer)
-  });
+    header.textContent = text;
 
-  return false; // prevent reload
-};
+    list.innerHTML = '';
+    data[0].meanings.forEach(({ partOfSpeech, definitions }) => {
+      const li = document.createElement('li');
+      li.textContent = ${partOfSpeech} - ${definitions[0].definition};
+      list.appendChild(li);
+    });
+  } catch (error) {
+    console.error(error);
+  }
+});
